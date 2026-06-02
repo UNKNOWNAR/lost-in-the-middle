@@ -1,0 +1,11 @@
+venv/
+.env
+__pycache__/
+*.zip
+*.txt
+*.png
+lost-in-the-middle/
+qa_data/
+data/
+10documents_results/
+20documents_results/
