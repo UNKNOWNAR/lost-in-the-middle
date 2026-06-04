@@ -10,13 +10,14 @@ This report summarizes the performance evaluation of the local `llama3.1:8b` mod
 
 Below is a sequential visualization of the evaluation graphs generated from the experiments:
 
-````carousel
-![10 Documents Evaluation Graph](results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
-<!-- slide -->
-![20 Documents Evaluation Graph](results/20documents_results/lost_in_the_middle_20_docs_final.png)
-<!-- slide -->
-![30 Documents Evaluation Graph](results/30documents_results/lost_in_the_middle_30_docs_final.png)
-````
+### 10-Document Context Evaluation Graph
+![10 Documents Evaluation Graph](./results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
+
+### 20-Document Context Evaluation Graph
+![20 Documents Evaluation Graph](./results/20documents_results/lost_in_the_middle_20_docs_final.png)
+
+### 30-Document Context Evaluation Graph
+![30 Documents Evaluation Graph](./results/30documents_results/lost_in_the_middle_30_docs_final.png)
 
 ### Key Observations:
 1. **Clear Performance Degradation:** In all contexts, placing the target information in the middle of the context window degrades accuracy relative to the beginning.
@@ -40,7 +41,7 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 | **4** (Middle) | 1,213 | 2,655 | **45.69%** |
 | **9** (End) | 1,192 | 2,655 | **44.90%** |
 
-![10-Document Context Retrieval Graph](results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
+![10-Document Context Retrieval Graph](./results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
 
 ---
 
@@ -56,7 +57,7 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 | **14** (Late-mid) | 1,119 | 2,655 | **42.15%** |
 | **19** (End) | 1,136 | 2,655 | **42.79%** |
 
-![20-Document Context Retrieval Graph](results/20documents_results/lost_in_the_middle_20_docs_final.png)
+![20-Document Context Retrieval Graph](./results/20documents_results/lost_in_the_middle_20_docs_final.png)
 
 ---
 
@@ -74,7 +75,7 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 | **24** (25th) | 1,082 | 2,655 | **40.75%** |
 | **29** (End) | 1,120 | 2,655 | **42.18%** |
 
-![30-Document Context Retrieval Graph](results/30documents_results/lost_in_the_middle_30_docs_final.png)
+![30-Document Context Retrieval Graph](./results/30documents_results/lost_in_the_middle_30_docs_final.png)
 
 ---
 
