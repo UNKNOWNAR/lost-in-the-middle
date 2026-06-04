@@ -1,0 +1,12 @@
+# Core plotting and data visualization
+matplotlib==3.10.9
+seaborn==0.13.2
+pandas==3.0.3
+
+# LLM APIs and Client Integrations
+ollama==0.6.2
+google-genai==2.7.0
+python-dotenv==1.2.2
+
+# Data validation and parsing
+pydantic==2.13.4
