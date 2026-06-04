@@ -109,7 +109,7 @@ def main():
     )
 
     plt.title("Real 'Lost in the Middle' Phenomenon (First-Line Truncated)\nAccuracy by Answer Position (Gemini API - gemma-4-31b-it)", fontsize=14, pad=15)
-    plt.ylim(0, 105)
+    plt.ylim(50, 60)
     plt.xlim(-1, 10)
     plt.xticks([0, 4, 9])
     plt.xlabel("Position of Relevant Document (Gold Index)", fontsize=12)

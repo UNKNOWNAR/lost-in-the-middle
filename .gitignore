@@ -1,11 +1,39 @@
+# ── Python ────────────────────────────────────────────────────
 venv/
-.env
 __pycache__/
-*.zip
-*.txt
-*.png
-lost-in-the-middle/
-qa_data/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+
+# ── Data (large, not tracked in git) ─────────────────────────
 data/
-10documents_results/
-20documents_results/
+qa_data/
+*.zip
+*.gz
+
+# ── Runtime logs (generated during evaluation runs) ──────────
+results/gemma_results/live_output_gemini_gemma.txt
+results/gemma_results/live_output_gemma_baseline.txt
+results/phi3_results/live_output_ollama.txt
+results/llama 3.1 8b/live_output_baseline.txt
+results/llama 3.1 8b/10documents_results/live_output_llama3.txt
+results/llama 3.1 8b/20documents_results/live_output_llama3.txt
+results/llama 3.1 8b/30documents_results/live_output_llama3.txt
+
+# ── Raw response dumps (large JSON files) ─────────────────────
+results/llama 3.1 8b/10documents_results/all_responses_llama3.json
+results/llama 3.1 8b/20documents_results/all_responses_llama3.json
+results/llama 3.1 8b/30documents_results/all_responses_llama3.json
+
+# ── Original paper submodule (cloned separately) ──────────────
+lost-in-the-middle/
+
+# ── IDE & OS artifacts ────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

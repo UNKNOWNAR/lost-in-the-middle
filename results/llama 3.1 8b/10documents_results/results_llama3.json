@@ -1,0 +1,23 @@
+[
+  {
+    "Context Size (Documents)": "10",
+    "Position of Answer (Gold Index)": 0,
+    "Accuracy (%)": 49.49152542372882,
+    "Correct": 1314,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "10",
+    "Position of Answer (Gold Index)": 4,
+    "Accuracy (%)": 45.687382297551785,
+    "Correct": 1213,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "10",
+    "Position of Answer (Gold Index)": 9,
+    "Accuracy (%)": 44.89642184557439,
+    "Correct": 1192,
+    "Total": 2655
+  }
+]
