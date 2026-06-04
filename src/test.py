@@ -26,7 +26,8 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
-sys.stdout = Logger("live_output.txt")
+os.makedirs("results/gemma_results", exist_ok=True)
+sys.stdout = Logger("results/gemma_results/live_output_gemini_gemma.txt")
 
 load_dotenv()
 
@@ -174,7 +175,7 @@ plt.ylabel("Accuracy (%)", fontsize=12)
 plt.legend(title="Context Size")
 
 # Save to file
-output_image = "lost_in_the_middle_graph.png"
+output_image = "results/gemma_results/gemma_4_31b_it_graph.png"
 plt.tight_layout()
 plt.savefig(output_image, dpi=300)
 

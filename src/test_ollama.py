@@ -23,7 +23,8 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
-sys.stdout = Logger("live_output_ollama.txt")
+os.makedirs("results/phi3_results", exist_ok=True)
+sys.stdout = Logger("results/phi3_results/live_output_ollama.txt")
 
 MODEL_NAME = "phi3"
 
@@ -142,7 +143,7 @@ plt.title(f"Lost in the Middle Evaluation (Ollama - {MODEL_NAME})", fontsize=14)
 plt.ylim(0, 100)
 plt.xticks(df["Position of Answer (Gold Index)"].unique())
 
-output_image = "ollama_graph.png"
+output_image = "results/phi3_results/ollama_graph.png"
 plt.tight_layout()
 plt.savefig(output_image, dpi=300)
 

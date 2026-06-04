@@ -21,7 +21,8 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
-sys.stdout = Logger("live_output_baseline.txt")
+os.makedirs("results/llama 3.1 8b", exist_ok=True)
+sys.stdout = Logger("results/llama 3.1 8b/live_output_baseline.txt")
 
 MODEL_NAME = "llama3.1"
 

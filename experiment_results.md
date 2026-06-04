@@ -6,30 +6,7 @@ This report summarizes the performance evaluation of the local `llama3.1:8b` mod
 
 ---
 
-## 1. Executive Summary & Graph Comparison
-
-Below is a sequential visualization of the evaluation graphs generated from the experiments:
-
-### 10-Document Context Evaluation Graph
-![10 Documents Evaluation Graph](./results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
-
-### 20-Document Context Evaluation Graph
-![20 Documents Evaluation Graph](./results/20documents_results/lost_in_the_middle_20_docs_final.png)
-
-### 30-Document Context Evaluation Graph
-![30 Documents Evaluation Graph](./results/30documents_results/lost_in_the_middle_30_docs_final.png)
-
-### Key Observations:
-1. **Clear Performance Degradation:** In all contexts, placing the target information in the middle of the context window degrades accuracy relative to the beginning.
-2. **Context Window Stress:** The overall baseline accuracy at Position 0 drops as the context grows longer:
-   * **10 Documents:** 49.5% accuracy (Position 0)
-   * **20 Documents:** 47.8% accuracy (Position 0)
-   * **30 Documents:** 46.3% accuracy (Position 0)
-3. **Late Context Recency Bias:** In both the 20-document and 30-document runs, we observe a slight uptick in accuracy at the final position (Position 19 and Position 29 respectively), showing that the model retains recency bias for information presented at the very end of the prompt.
-
----
-
-## 2. Detailed Performance Tables
+## 1. Detailed Performance Tables & Observations
 
 ### 10-Document Context Configuration
 * **Total Run Time:** 4.2 Hours
@@ -42,6 +19,11 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 | **9** (End) | 1,192 | 2,655 | **44.90%** |
 
 ![10-Document Context Retrieval Graph](./results/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
+
+* **Observations:**
+  * **Highest Baseline:** Peak performance of **49.49%** is achieved when the gold document is at the very beginning (Position 0).
+  * **Monotonic Decline:** Performance drops steadily as the document moves deeper into the context window, falling to **45.69%** at the middle (Position 4) and bottoming out at **44.90%** at the end (Position 9).
+  * **No Recency Uptick:** Unlike the 20 and 30 document configurations, there is no recency bias effect (uptick in accuracy at the final position) for the 10-document configuration.
 
 ---
 
@@ -58,6 +40,11 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 | **19** (End) | 1,136 | 2,655 | **42.79%** |
 
 ![20-Document Context Retrieval Graph](./results/20documents_results/lost_in_the_middle_20_docs_final.png)
+
+* **Observations:**
+  * **Degraded Baseline:** Peak accuracy at the beginning drops to **47.83%** (a 1.66% decline compared to 10 documents).
+  * **The "U-Shape" Curve:** Performance drops to its lowest point in the late-middle context window at **42.15%** (Position 14).
+  * **Recency Bias Recovery:** Accuracy increases to **42.79%** at the final position (Position 19), showing the classic recency effect where the model recalls information from the end of the context better than the middle.
 
 ---
 
@@ -77,9 +64,14 @@ Below is a sequential visualization of the evaluation graphs generated from the 
 
 ![30-Document Context Retrieval Graph](./results/30documents_results/lost_in_the_middle_30_docs_final.png)
 
+* **Observations:**
+  * **Lowest Baseline:** Peak accuracy at the beginning is at its lowest at **46.29%** (a 3.2% decline from the 10-document run).
+  * **Extended Performance Valley:** Accuracy floors and plateaus at **40.75%** in the late-middle positions (Positions 19 and 24).
+  * **Strong Recency Bounce:** The final document position (Position 29) shows a prominent recovery to **42.18%** (a 1.43% improvement from the floor), indicating that recency bias remains a significant factor as context window length increases.
+
 ---
 
-## 3. Findings & Comparison Analysis
+## 2. Findings & Comparison Analysis
 
 > **💡 Tip:** Comparing all three configurations highlights that context size has a direct, negative correlation with retrieval accuracy. The performance "valley" deepens and widens as context sizes expand.
 

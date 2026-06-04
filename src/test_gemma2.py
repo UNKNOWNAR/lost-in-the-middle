@@ -24,7 +24,8 @@ class Logger:
         self.terminal.flush()
         self.log.flush()
 
-sys.stdout = Logger("live_output_gemma2.txt")
+os.makedirs("results/gemma_results", exist_ok=True)
+sys.stdout = Logger("results/gemma_results/live_output_gemma2.txt")
 
 MODEL_NAME = "gemma2:9b"
 
@@ -150,7 +151,7 @@ plt.title(f"Lost in the Middle Evaluation (Ollama - {MODEL_NAME})", fontsize=14)
 plt.ylim(0, 100)
 plt.xticks(df["Position of Answer (Gold Index)"].unique())
 
-output_image = "ollama_graph_gemma2.png"
+output_image = "results/gemma_results/ollama_graph_gemma2.png"
 plt.tight_layout()
 plt.savefig(output_image, dpi=300)
 

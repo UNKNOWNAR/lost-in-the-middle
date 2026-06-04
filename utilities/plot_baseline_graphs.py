@@ -37,22 +37,22 @@ def plot_graph_with_baseline(json_path, output_image_path, title, ylim=(20, 60))
 
 # Recreate 10-docs graph (zoomed)
 plot_graph_with_baseline(
-    "results/10documents_results/results_llama3.json",
-    "results/10documents_results/kaggle_graph_llama3_zoomed.png",
+    "results/llama 3.1 8b/10documents_results/results_llama3.json",
+    "results/llama 3.1 8b/10documents_results/kaggle_graph_llama3_zoomed.png",
     "Lost in the Middle Evaluation (Llama 3 - 10 Docs) [Zoomed]"
 )
 
 # Recreate 20-docs graph (zoomed)
 plot_graph_with_baseline(
-    "results/20documents_results/results_llama3_complete.json",
-    "results/20documents_results/lost_in_the_middle_20_docs_zoomed.png",
+    "results/llama 3.1 8b/20documents_results/results_llama3_complete.json",
+    "results/llama 3.1 8b/20documents_results/lost_in_the_middle_20_docs_zoomed.png",
     "Lost in the Middle Evaluation (Llama 3 - 20 Docs) [Zoomed]"
 )
 
 # Recreate 30-docs graph (full range 0-100, no zoomed title)
 plot_graph_with_baseline(
-    "results/30documents_results/results_llama3_30docs_final_run.json",
-    "results/30documents_results/lost_in_the_middle_30_docs_with_baseline.png",
+    "results/llama 3.1 8b/30documents_results/results_llama3_30docs_final_run.json",
+    "results/llama 3.1 8b/30documents_results/lost_in_the_middle_30_docs_with_baseline.png",
     "Lost in the Middle Evaluation (Llama 3 - 30 Docs)",
     ylim=(0, 100)
 )
