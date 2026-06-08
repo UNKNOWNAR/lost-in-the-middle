@@ -265,8 +265,11 @@ As the number of documents increases from 10 → 20 → 30, two things happen si
 1. The peak accuracy at Position 0 decreases (61.39% → 47.83% → 46.29%). *Note: 20/30 doc results use the original single-answer metric.*
 2. The performance valley deepens and sustains across more positions.
 
-### ✅ Finding 3: Context Window Size is the Primary Moderating Variable
-Gemma 4 31B-IT's flat accuracy curve confirms the hypothesis: when a model's context window is orders of magnitude larger than the context being evaluated (1M vs. ~8K tokens), it can retrieve information from any position equally well. The "Lost in the Middle" effect is a **relative** constraint, not an absolute one.
+### ✅ Finding 3: A Massive Context Window Does Not Automatically Solve the Problem
+A critical insight from this replication is that simply having a massive context window limit does not immunize a model against the "Lost in the Middle" effect. 
+- **Llama 3.1 8B, Qwen 2.5 7B, and Phi-3 Mini** all boast massive native context windows (up to 128K tokens). Yet, when fed a prompt of only ~4,000 to ~8,000 tokens (filling just 3% to 6% of their capacity), they still exhibit severe performance drops in the middle.
+- This proves the phenomenon is an inherent limitation of standard attention mechanisms, not just a symptom of running out of memory. 
+- **Gemma 4 31B-IT** is the only exception with a flat accuracy curve, suggesting its specific 1M-token architecture handles attention weighting fundamentally differently than the others.
 
 ### ✅ Finding 4: Model Size and Architecture Matter (But Not Linearly)
 Despite being 8× larger, Gemma 4 31B shows less "Lost in the Middle" degradation than tiny Phi-3 Mini (3.8B). This is likely more attributable to architectural advances (massive context window, improved positional encodings) than raw parameter count. Llama-2-70b-chat (paper) shows a steeper drop than our Llama 3.1 8B, despite being larger — suggesting newer architecture improvements in Llama 3.x generations help.
