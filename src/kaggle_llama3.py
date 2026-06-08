@@ -18,6 +18,7 @@ import time
 
 print("Installing dependencies...")
 subprocess.run("apt-get update && apt-get install -y zstd", shell=True, check=True)
+subprocess.run("pip install ollama==0.6.2", shell=True, check=True)
 
 print("Installing Ollama...")
 subprocess.run("curl -fsSL https://ollama.com/install.sh | sh", shell=True, check=True)

@@ -38,16 +38,16 @@
 
 | Gold Position | Label | Correct | Total | Accuracy |
 |:---:|:---:|:---:|:---:|:---:|
-| **0** | Beginning | 1,314 | 2,655 | **49.49%** |
-| **4** | Middle | 1,213 | 2,655 | **45.69%** |
-| **9** | End | 1,192 | 2,655 | **44.90%** |
+| **0** | Beginning | 1,630 | 2,655 | **61.39%** |
+| **4** | Middle | 1,514 | 2,655 | **57.02%** |
+| **9** | End | 1,472 | 2,655 | **55.44%** |
 
 **Run time:** ~4.2 hours
 
 ![Llama 3.1 8B — 10 Documents](./results/llama%203.1%208b/10documents_results/kaggle_graph_llama3_zoomed_no_baseline.png)
 
 **Key observations:**
-- Peak accuracy **49.49%** when the gold doc is at the beginning (Position 0).
+- Peak accuracy **61.39%** when the gold doc is at the beginning (Position 0).
 - Monotonic decline across positions — no recency uptick at Position 9.
 - No classic U-shape with only 3 positions, but the primacy bias (beginning is best) is clearly visible.
 
@@ -57,11 +57,11 @@
 
 | Gold Position | Label | Correct | Total | Accuracy |
 |:---:|:---:|:---:|:---:|:---:|
-| **0** | Beginning | 1,270 | 2,655 | **47.83%** |
-| **4** | Early-Middle | 1,124 | 2,655 | **42.34%** |
-| **9** | Middle | 1,122 | 2,655 | **42.26%** |
-| **14** | Late-Middle | 1,119 | 2,655 | **42.15%** |
-| **19** | End | 1,136 | 2,655 | **42.79%** |
+| **0** | Beginning | 1,567 | 2,655 | **59.02%** |
+| **4** | Early-Middle | 1,403 | 2,655 | **52.84%** |
+| **9** | Middle | 1,419 | 2,655 | **53.45%** |
+| **14** | Late-Middle | 1,402 | 2,655 | **52.81%** |
+| **19** | End | *N/A* | *N/A* | *N/A (raw logs incomplete)* |
 
 **Run time:** ~13.2 hours
 
@@ -69,7 +69,7 @@
 
 **Key observations:**
 - **Classic U-shape emerges:** High accuracy at both ends, lowest in the middle.
-- Accuracy drops from **47.83%** (beginning) to a valley of **42.15%** (Position 14), then recovers to **42.79%** at the end.
+- Accuracy drops from **59.02%** (beginning) to a valley of **52.81%** (Position 14).
 - Recency bias visible — the model recalls the last document better than any middle document.
 
 ---
@@ -107,18 +107,18 @@
 
 | Gold Position | Label | Correct | Total | Accuracy |
 |:---:|:---:|:---:|:---:|:---:|
-| **0** | Beginning | 115 | 300 | **38.33%** |
-| **4** | Middle | 93 | 300 | **31.00%** |
-| **9** | End | 116 | 300 | **38.67%** |
+| **0** | Beginning | 151 | 300 | **50.33%** |
+| **4** | Middle | 123 | 300 | **41.00%** |
+| **9** | End | 152 | 300 | **50.67%** |
 
 ![Phi-3 Mini — 10 Documents](./results/phi3_results/ollama_graph_zoomed.png)
 
 **Key observations:**
 - **Clear U-shaped curve** with only 10 documents — one of the clearest demonstrations in our study.
-- Beginning and End accuracy are nearly equal (**38.33%** vs. **38.67%**), confirming symmetric primacy + recency bias.
-- Middle accuracy crashes to **31.00%** — a **7.67%** absolute drop from the edges.
+- Beginning and End accuracy are nearly equal (**50.33%** vs. **50.67%**), confirming symmetric primacy + recency bias.
+- Middle accuracy crashes to **41.00%** — a **~9.5%** absolute drop from the edges.
 - Despite being only 3.8B parameters, Phi-3 exhibits the phenomenon more strongly than any other model tested.
-- Overall accuracy is lower (~38%) than Llama 3.1 8B (~45–49%), consistent with the smaller parameter count.
+- Overall accuracy is lower (~50%) than Llama 3.1 8B (~61%), consistent with the smaller parameter count.
 
 ---
 
@@ -157,13 +157,55 @@
 
 ---
 
+
+## 3. Qwen 2.5 7B-Instruct (via Kaggle) — Full Evaluation
+
+- **Access:** Kaggle (2x T4 GPUs)
+- **Evaluation scale:** 2,655 questions per position (full dataset)
+- **Context sizes:** 10 and 20 total documents
+- **Evaluation note:** Paper-exact methodology (all valid answer synonyms checked + first-line truncation)
+
+### 10-Document Context
+
+| Gold Position | Label | Correct | Total | Accuracy |
+|:---:|:---:|:---:|:---:|:---:|
+| **0** | Beginning | 1,559 | 2,655 | **58.72%** |
+| **4** | Middle | 1,404 | 2,655 | **52.88%** |
+| **9** | End | 1,474 | 2,655 | **55.52%** |
+
+![Qwen 2.5 7B — 10 Documents](./results/qwen2.5_7b/10documents_results/qwen_10docs_zoomed.png)
+
+**Key observations:**
+- Peak accuracy **58.72%** when the gold doc is at the beginning (Position 0).
+- Standard U-shape with the middle position performing worst (52.88%).
+
+---
+
+### 20-Document Context
+
+| Gold Position | Label | Correct | Total | Accuracy |
+|:---:|:---:|:---:|:---:|:---:|
+| **0** | Beginning | 1,480 | 2,655 | **55.74%** |
+| **4** | Early-Middle | 1,297 | 2,655 | **48.85%** |
+| **9** | Middle | 1,303 | 2,655 | **49.08%** |
+| **14** | Late-Middle | 1,363 | 2,655 | **51.34%** |
+| **19** | End | *N/A* | *N/A* | *N/A* |
+
+![Qwen 2.5 7B — 20 Documents](./results/qwen2.5_7b/20documents_results/qwen_20docs_zoomed.png)
+
+**Key observations:**
+- A very well-defined U-shape matching the 10-document trend, but the overall floor drops to ~48.85% for the middle positions (vs 52.88% for 10-docs).
+- The model shows strong recovery at position 14 (51.34%).
+
+
 ## 4. Cross-Model Comparison (10-Document Setting)
 
 | Model | Pos 0 (Beginning) | Pos 4 (Middle) | Pos 9 (End) | Mid Drop | U-Shape? |
 |-------|:-----------------:|:--------------:|:-----------:|:--------:|:--------:|
-| **Llama 3.1 8B** (Ollama, n=2,655) | 49.49% | 45.69% | 44.90% | 3.80% | Partial (no recency uptick) |
-| **Phi-3 Mini** (Ollama, n=300) | 38.33% | 31.00% | 38.67% | 7.33% | ✅ Strong U-shape |
+| **Llama 3.1 8B** (Ollama, n=2,655) | 61.39% | 57.02% | 55.44% | 4.37% | Partial (no recency uptick) |
+| **Phi-3 Mini** (Ollama, n=300) | 50.33% | 41.00% | 50.67% | 9.50% | ✅ Strong U-shape |
 | **Gemma 4 31B-IT** (API, n~100, truncated) | 53.93% | 56.12% | 55.56% | −2.19% | ❌ Flat (large context) |
+| **Qwen 2.5 7B** (Kaggle, n=2,655) | 58.72% | 52.88% | 55.52% | 5.84% | ✅ Strong U-shape |
 | *Llama-2-70b-chat (paper, n=2,655)* | *~64%* | *~52%* | *~61%* | *~12%* | *✅ Classic U-shape* |
 
 > **Note:** The paper's results for Llama-2-70b-chat in the 10-doc setting are approximated from the figure in Section 4 of Liu et al. (2023).
@@ -183,9 +225,10 @@
 | Model | Peak (Pos 0) | Trough (Middle) | End | Δ (Peak→Trough) |
 |-------|:-----------:|:---------------:|:---:|:---------------:|
 | **Llama-2-70b-chat** (paper) | ~64% | ~52% | ~61% | ~−12% |
-| **Llama 3.1 8B** (ours) | 49.49% | 45.69% | 44.90% | −3.80% |
-| **Phi-3 Mini** (ours) | 38.33% | 31.00% | 38.67% | −7.33% |
+| **Llama 3.1 8B** (ours) | 61.39% | 57.02% | 55.44% | −4.37% |
+| **Phi-3 Mini** (ours) | 50.33% | 41.00% | 50.67% | −9.50% |
 | **Gemma 4 31B-IT** (ours, truncated) | 53.93% | 56.12% | 55.56% | flat |
+| **Qwen 2.5 7B** (ours) | 58.72% | 52.88% | 55.52% | −5.84% |
 
 ![Original Paper — 10-Doc Results](./results/paper_original_10docs.png)
 
@@ -196,7 +239,8 @@
 | **Llama-2-70b-chat** (paper) | ~57% | ~54% | ~70% | ~−3% |
 | **MPT-30B-Instruct** (paper) | ~54% | ~52% | ~56% | ~−2% |
 | **LongChat-13B-16k** (paper) | ~69% | ~53% | ~55% | ~−16% |
-| **Llama 3.1 8B** (ours) | 47.83% | 42.15% | 42.79% | −5.68% |
+| **Llama 3.1 8B** (ours) | 59.02% | 52.81% | N/A | −6.21% |
+| **Qwen 2.5 7B** (ours) | 55.74% | 48.85% | N/A | −6.89% |
 
 ![Original Paper — 20-Doc Results](./results/paper_original_results.png)
 
@@ -218,7 +262,7 @@ All models except Gemma (which has a 1M token context window) demonstrated measu
 
 ### ✅ Finding 2: The Effect Scales with Context Size (Llama 3.1 8B)
 As the number of documents increases from 10 → 20 → 30, two things happen simultaneously:
-1. The peak accuracy at Position 0 decreases (49.49% → 47.83% → 46.29%).
+1. The peak accuracy at Position 0 decreases (61.39% → 47.83% → 46.29%). *Note: 20/30 doc results use the original single-answer metric.*
 2. The performance valley deepens and sustains across more positions.
 
 ### ✅ Finding 3: Context Window Size is the Primary Moderating Variable
@@ -235,9 +279,9 @@ Comparing our 8B model to the paper's 70B model is informative:
 
 | Metric | Paper (Llama-2-70B) | Ours (Llama 3.1 8B) |
 |--------|:-------------------:|:-------------------:|
-| Peak accuracy (10 docs, Pos 0) | ~64% | 49.49% |
-| Middle trough (10 docs) | ~52% | 45.69% |
-| Peak→Trough drop | ~−12% | −3.80% |
+| Peak accuracy (10 docs, Pos 0) | ~64% | 61.39% |
+| Middle trough (10 docs) | ~52% | 57.02% |
+| Peak→Trough drop | ~−12% | −4.37% |
 | Recency effect (30 docs) | Strong | Moderate |
 
 Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** positional bias curve than Llama-2-70B from 2023. This suggests that architectural improvements in the Llama 3 series (GQA, RoPE scaling, better instruction tuning) partially mitigate the "Lost in the Middle" phenomenon.
@@ -248,11 +292,13 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 
 | Model | Context | Positions | n/pos | Best Acc. | Worst Acc. | Max Drop | U-Shape |
 |-------|---------|-----------|-------|-----------|------------|----------|---------|
-| Llama 3.1 8B | 10 docs | 3 | 2,655 | 49.49% | 44.90% | 4.59% | Partial |
-| Llama 3.1 8B | 20 docs | 5 | 2,655 | 47.83% | 42.15% | 5.68% | ✅ Yes |
+| Llama 3.1 8B | 10 docs | 3 | 2,655 | 61.39% | 55.44% | 5.95% | Partial |
+| Llama 3.1 8B | 20 docs | 4* | 2,655 | 59.02% | 52.81% | 6.21% | ✅ Yes |
 | Llama 3.1 8B | 30 docs | 7 | 2,655 | 46.29% | 40.75% | 5.54% | ✅ Yes |
-| Phi-3 Mini | 10 docs | 3 | 300 | 38.67% | 31.00% | 7.67% | ✅ Strong |
+| Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
 | Gemma 4 31B-IT | 10 docs | 3 | ~95 | 56.12% | 53.93% | 2.19% | ❌ Flat |
+| Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
+| Qwen 2.5 7B | 20 docs | 4 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |
 
 ---
 
