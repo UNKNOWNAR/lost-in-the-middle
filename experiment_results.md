@@ -155,6 +155,8 @@
 - This is expected: Gemma 4 31B has a **1 million token** context window. With only 10 documents (~8,000 tokens), the context fits comfortably in Gemma's attention mechanism and the model can retrieve from any position with equal ease.
 - **Closed-Book Baseline:** Gemma's intrinsic knowledge gave 13/65 = **20.00%** (run was cut short by network errors). This confirms the retrieval augmentation is helping substantially.
 
+> ⚠️ **Limitation Note (Sample Size):** Gemma was only tested on ~100 questions per position (less than 4% of the full dataset) due to API rate limits and network errors dropping some requests. While Phi-3 showed a clear U-shape at n=300, a sample size of ~100 introduces significant statistical variance (margin of error). It is possible a small U-shape effect exists for Gemma but is masked by the small sample size. Future work should evaluate Gemma on the full n=2,655 set to confirm these findings.
+
 ---
 
 
