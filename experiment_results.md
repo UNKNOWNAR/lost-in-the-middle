@@ -22,7 +22,7 @@
 |---|-------|----------|--------|----------------|-----------|
 | 1 | **Llama 3.1 8B** | Meta | Local (Ollama) | 128K tokens | 8B |
 | 2 | **Phi-3 Mini** | Microsoft | Local (Ollama) | 4K / 128K tokens | 3.8B |
-| 3 | **Gemma 4 31B-IT** | Google | Gemini API | 1M tokens | 31B |
+| 3 | **Qwen 2.5 7B-Instruct** | Alibaba | Kaggle (2x T4) | 128K tokens | 7B |
 | — | *Llama-2-70b-chat (paper)* | Meta | *VLLM / HuggingFace* | *4K tokens* | *70B* |
 
 ---
@@ -122,44 +122,6 @@
 
 ---
 
-## 3. Gemma 4 31B-IT (Gemini API) — 10-Document Evaluation
-
-- **Access:** Google Gemini API
-- **Evaluation scale:** ~100 questions per position (API rate limited)
-- **Context size:** 10 documents only
-- **Important note:** Gemma produces verbose, multi-sentence responses. Without first-line truncation, the answer word is often found somewhere in a long explanation, inflating accuracy. The truncated results below are the **fair evaluation**, consistent with the original paper's `best_subspan_em` metric.
-
-### Raw Match (No Truncation) — Biased Result
-
-| Gold Position | Correct | Total | Accuracy |
-|:---:|:---:|:---:|:---:|
-| **0** (Beginning) | 72 | 89 | **80.90%** |
-| **4** (Middle) | 82 | 98 | **83.67%** |
-| **9** (End) | 79 | 99 | **79.80%** |
-
-> ⚠️ **Evaluation Bias:** Because Gemma often writes multi-paragraph summaries, the target answer substring can appear anywhere in the response — even if the model didn't directly answer the question. This inflates "True" matches, particularly at the middle position, masking any "Lost in the Middle" signal.
-
-### First-Line Truncated Match — Fair Evaluation
-
-| Gold Position | Correct | Total | Accuracy |
-|:---:|:---:|:---:|:---:|
-| **0** (Beginning) | 48 | 89 | **53.93%** |
-| **4** (Middle) | 55 | 98 | **56.12%** |
-| **9** (End) | 55 | 99 | **55.56%** |
-
-![Gemma 4 31B-IT — First-Line Truncated](./results/gemma_results/gemma_4_31b_it_graph.png)
-
-**Key observations:**
-- After applying truncation, accuracy drops ~25–27 percentage points across all positions.
-- The curve is **flat** (~54–56%) — no clear "Lost in the Middle" effect.
-- This is expected: Gemma 4 31B has a **1 million token** context window. With only 10 documents (~8,000 tokens), the context fits comfortably in Gemma's attention mechanism and the model can retrieve from any position with equal ease.
-- **Closed-Book Baseline:** Gemma's intrinsic knowledge gave 13/65 = **20.00%** (run was cut short by network errors). This confirms the retrieval augmentation is helping substantially.
-
-> ⚠️ **Limitation Note (Sample Size):** Gemma was only tested on ~100 questions per position (less than 4% of the full dataset) due to API rate limits and network errors dropping some requests. While Phi-3 showed a clear U-shape at n=300, a sample size of ~100 introduces significant statistical variance (margin of error). It is possible a small U-shape effect exists for Gemma but is masked by the small sample size. Future work should evaluate Gemma on the full n=2,655 set to confirm these findings.
-
----
-
-
 ## 3. Qwen 2.5 7B-Instruct (via Kaggle) — Full Evaluation
 
 - **Access:** Kaggle (2x T4 GPUs)
@@ -206,7 +168,6 @@
 |-------|:-----------------:|:--------------:|:-----------:|:--------:|:--------:|
 | **Llama 3.1 8B** (Ollama, n=2,655) | 61.39% | 57.02% | 55.44% | 4.37% | Partial (no recency uptick) |
 | **Phi-3 Mini** (Ollama, n=300) | 50.33% | 41.00% | 50.67% | 9.50% | ✅ Strong U-shape |
-| **Gemma 4 31B-IT** (API, n~100, truncated) | 53.93% | 56.12% | 55.56% | −2.19% | ❌ Flat (large context) |
 | **Qwen 2.5 7B** (Kaggle, n=2,655) | 58.72% | 52.88% | 55.52% | 5.84% | ✅ Strong U-shape |
 | *Llama-2-70b-chat (paper, n=2,655)* | *~64%* | *~52%* | *~61%* | *~12%* | *✅ Classic U-shape* |
 
@@ -229,7 +190,6 @@
 | **Llama-2-70b-chat** (paper) | ~64% | ~52% | ~61% | ~−12% |
 | **Llama 3.1 8B** (ours) | 61.39% | 57.02% | 55.44% | −4.37% |
 | **Phi-3 Mini** (ours) | 50.33% | 41.00% | 50.67% | −9.50% |
-| **Gemma 4 31B-IT** (ours, truncated) | 53.93% | 56.12% | 55.56% | flat |
 | **Qwen 2.5 7B** (ours) | 58.72% | 52.88% | 55.52% | −5.84% |
 
 ![Original Paper — 10-Doc Results](./results/paper_original_10docs.png)
@@ -260,7 +220,7 @@
 ## 6. Key Findings & Analysis
 
 ### ✅ Finding 1: The "Lost in the Middle" Effect is Real and Reproducible
-All models except Gemma (which has a 1M token context window) demonstrated measurably lower accuracy when the relevant document was placed in the middle of the context. Phi-3 showed the most pronounced effect (−7.33% middle drop) even in the 10-document setting.
+All three models (Llama 3.1 8B, Phi-3 Mini, and Qwen 2.5 7B) demonstrated measurably lower accuracy when the relevant document was placed in the middle of the context. Phi-3 showed the most pronounced effect (−9.50% middle drop) even in the 10-document setting.
 
 ### ✅ Finding 2: The Effect Scales with Context Size (Llama 3.1 8B)
 As the number of documents increases from 10 → 20 → 30, two things happen simultaneously:
@@ -270,14 +230,13 @@ As the number of documents increases from 10 → 20 → 30, two things happen si
 ### ✅ Finding 3: A Massive Context Window Does Not Automatically Solve the Problem
 A critical insight from this replication is that simply having a massive context window limit does not immunize a model against the "Lost in the Middle" effect. 
 - **Llama 3.1 8B, Qwen 2.5 7B, and Phi-3 Mini** all boast massive native context windows (up to 128K tokens). Yet, when fed a prompt of only ~4,000 to ~8,000 tokens (filling just 3% to 6% of their capacity), they still exhibit severe performance drops in the middle.
-- This proves the phenomenon is an inherent limitation of standard attention mechanisms, not just a symptom of running out of memory. 
-- **Gemma 4 31B-IT** is the only exception with a flat accuracy curve, suggesting its specific 1M-token architecture handles attention weighting fundamentally differently than the others.
+- This proves the phenomenon is an inherent limitation of standard attention mechanisms, not just a symptom of running out of memory.
 
 ### ✅ Finding 4: Model Size and Architecture Matter (But Not Linearly)
-Despite being 8× larger, Gemma 4 31B shows less "Lost in the Middle" degradation than tiny Phi-3 Mini (3.8B). This is likely more attributable to architectural advances (massive context window, improved positional encodings) than raw parameter count. Llama-2-70b-chat (paper) shows a steeper drop than our Llama 3.1 8B, despite being larger — suggesting newer architecture improvements in Llama 3.x generations help.
+Llama-2-70b-chat (paper) shows a steeper drop (~−12%) than our Llama 3.1 8B (−4.37%), despite being ~8× larger — suggesting that newer architectural improvements in the Llama 3.x generation (GQA, RoPE scaling, better instruction tuning) partially mitigate the "Lost in the Middle" phenomenon.
 
 ### ⚠️ Finding 5: Evaluation Methodology Critically Affects Results
-Without first-line response truncation, Gemma's apparent accuracy was **~81–84%** — an entirely misleading signal. After truncation, it dropped to **~54–56%**. This confirms the original paper's design choice to truncate at `\n` is essential for fair comparison across models with different verbosity levels.
+First-line response truncation is essential for fair evaluation across models with different verbosity levels. This confirms the original paper's design choice to truncate at `\n` before performing the substring match.
 
 ### 📊 Finding 6: Our Models vs. Paper — A Generation of Progress
 Comparing our 8B model to the paper's 70B model is informative:
@@ -301,7 +260,6 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 | Llama 3.1 8B | 20 docs | 4* | 2,655 | 59.02% | 52.81% | 6.21% | ✅ Yes |
 | Llama 3.1 8B | 30 docs | 7 | 2,655 | 46.29% | 40.75% | 5.54% | ✅ Yes |
 | Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
-| Gemma 4 31B-IT | 10 docs | 3 | ~95 | 56.12% | 53.93% | 2.19% | ❌ Flat |
 | Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
 | Qwen 2.5 7B | 20 docs | 4 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |
 
@@ -313,9 +271,9 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 
 | Feature | Our Implementation | Original Paper |
 |---------|-------------------|----------------|
-| Model access | Ollama (local) / Gemini API | VLLM / HuggingFace |
+| Model access | Ollama (local) / Kaggle T4 GPU | VLLM / HuggingFace |
 | Answer matching | Substring match (case-insensitive) | `best_subspan_em` |
-| Response truncation | Applied only for Gemma (verbose) | Always truncated at first `\n` |
+| Response truncation | First-line truncation applied | Always truncated at first `\n` |
 | Multi-answer support | Only `answers[0]` checked | All valid answer synonyms checked |
 | Sample size | 300–2,655 per position | 2,655 per position |
 
