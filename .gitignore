@@ -24,11 +24,6 @@ results/llama 3.1 8b/10documents_results/live_output_llama3.txt
 results/llama 3.1 8b/20documents_results/live_output_llama3.txt
 results/llama 3.1 8b/30documents_results/live_output_llama3.txt
 
-# ── Raw response dumps (large JSON files) ─────────────────────
-results/llama 3.1 8b/10documents_results/all_responses_llama3.json
-results/llama 3.1 8b/20documents_results/all_responses_llama3.json
-results/llama 3.1 8b/30documents_results/all_responses_llama3.json
-
 # ── Original paper submodule (cloned separately) ──────────────
 lost-in-the-middle/
 
