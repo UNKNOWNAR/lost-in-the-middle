@@ -26,5 +26,12 @@
     "Accuracy (%)": 51.337099811676076,
     "Correct": 1363,
     "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "20",
+    "Position of Answer (Gold Index)": 19,
+    "Accuracy (%)": 54.80226,
+    "Correct": 1455,
+    "Total": 2655
   }
 ]

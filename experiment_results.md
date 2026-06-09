@@ -153,13 +153,13 @@
 | **4** | Early-Middle | 1,297 | 2,655 | **48.85%** |
 | **9** | Middle | 1,303 | 2,655 | **49.08%** |
 | **14** | Late-Middle | 1,363 | 2,655 | **51.34%** |
-| **19** | End | *N/A* | *N/A* | *N/A* |
+| **19** | End | 1,455 | 2,655 | **54.80%** |
 
-![Qwen 2.5 7B — 20 Documents](./results/qwen2.5_7b/20documents_results/qwen_20docs_zoomed.png)
+![Qwen 2.5 7B — 20 Documents](./results/qwen2.5_7b/20documents_results/qwen_20docs_complete_graph.png)
 
 **Key observations:**
 - A very well-defined U-shape matching the 10-document trend, but the overall floor drops to ~48.85% for the middle positions (vs 52.88% for 10-docs).
-- The model shows strong recovery at position 14 (51.34%).
+- The model shows a strong U-shape recovery at the end position (54.80% at Position 19).
 
 ---
 
@@ -222,7 +222,7 @@
 | **MPT-30B-Instruct** (paper) | ~54% | ~52% | ~56% | ~−2% |
 | **LongChat-13B-16k** (paper) | ~69% | ~53% | ~55% | ~−16% |
 | **Llama 3.1 8B** (ours) | 59.02% | 52.81% | 53.86% | −6.21% |
-| **Qwen 2.5 7B** (ours) | 55.74% | 48.85% | N/A | −6.89% |
+| **Qwen 2.5 7B** (ours) | 55.74% | 48.85% | 54.80% | −6.89% |
 
 ![Original Paper — 20-Doc Results](./results/paper_original_results.png)
 
@@ -282,7 +282,7 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 | Llama 3.1 8B | 30 docs | 7 | 2,655 | 46.29% | 40.75% | 5.54% | ✅ Yes |
 | Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
 | Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
-| Qwen 2.5 7B | 20 docs | 4 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |
+| Qwen 2.5 7B | 20 docs | 5 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |
 | Qwen 2.5 7B | 30 docs | 6 | 2,655 | 54.80% | 47.30% | 7.50% | ✅ Yes |
 
 ---
