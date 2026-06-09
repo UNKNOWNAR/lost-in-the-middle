@@ -161,6 +161,26 @@
 - A very well-defined U-shape matching the 10-document trend, but the overall floor drops to ~48.85% for the middle positions (vs 52.88% for 10-docs).
 - The model shows strong recovery at position 14 (51.34%).
 
+---
+
+### 30-Document Context
+
+- **Evaluation scale:** 2,655 questions per position (full dataset, up to Position 24)
+
+| Gold Position | Label | Correct | Total | Accuracy |
+|:---:|:---:|:---:|:---:|:---:|
+| **0** | Beginning | 1,455 | 2,655 | **54.80%** |
+| **4** | 5th | 1,266 | 2,655 | **47.70%** |
+| **9** | 10th | 1,257 | 2,655 | **47.30%** |
+| **14** | 15th | 1,263 | 2,655 | **47.57%** |
+| **19** | 20th | 1,302 | 2,655 | **49.04%** |
+| **24** | 25th | 1,316 | 2,655 | **49.57%** |
+| **29** | End | *N/A* | *N/A* | *N/A* |
+
+**Key observations:**
+- The U-shape is clearly visible, with the performance valley dipping to **47.30%** at Position 9 (a drop of **7.50%** from the beginning).
+- A slight recovery is visible towards the latter part of the context (49.57% at Position 24).
+
 
 ## 4. Cross-Model Comparison (10-Document Setting)
 
@@ -212,6 +232,7 @@
 |-------|:-----------:|:------:|:---:|:---------------:|
 | **Llama-2-70b-chat** (paper) | ~53% | ~35% | ~44% | ~−18% |
 | **Llama 3.1 8B** (ours) | 46.29% | 40.75% | 42.18% | −5.54% |
+| **Qwen 2.5 7B** (ours) | 54.80% | 47.30% | N/A | −7.50% |
 
 ![Original Paper — 30-Doc Results](./results/paper_original_30docs.png)
 
@@ -262,6 +283,7 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 | Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
 | Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
 | Qwen 2.5 7B | 20 docs | 4 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |
+| Qwen 2.5 7B | 30 docs | 6 | 2,655 | 54.80% | 47.30% | 7.50% | ✅ Yes |
 
 ---
 
