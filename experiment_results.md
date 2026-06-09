@@ -61,7 +61,7 @@
 | **4** | Early-Middle | 1,403 | 2,655 | **52.84%** |
 | **9** | Middle | 1,419 | 2,655 | **53.45%** |
 | **14** | Late-Middle | 1,402 | 2,655 | **52.81%** |
-| **19** | End | *N/A* | *N/A* | *N/A (raw logs incomplete)* |
+| **19** | End | 1,430 | 2,655 | **53.86%** |
 
 **Run time:** ~13.2 hours
 
@@ -201,7 +201,7 @@
 | **Llama-2-70b-chat** (paper) | ~57% | ~54% | ~70% | ~−3% |
 | **MPT-30B-Instruct** (paper) | ~54% | ~52% | ~56% | ~−2% |
 | **LongChat-13B-16k** (paper) | ~69% | ~53% | ~55% | ~−16% |
-| **Llama 3.1 8B** (ours) | 59.02% | 52.81% | N/A | −6.21% |
+| **Llama 3.1 8B** (ours) | 59.02% | 52.81% | 53.86% | −6.21% |
 | **Qwen 2.5 7B** (ours) | 55.74% | 48.85% | N/A | −6.89% |
 
 ![Original Paper — 20-Doc Results](./results/paper_original_results.png)
@@ -257,7 +257,7 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 | Model | Context | Positions | n/pos | Best Acc. | Worst Acc. | Max Drop | U-Shape |
 |-------|---------|-----------|-------|-----------|------------|----------|---------|
 | Llama 3.1 8B | 10 docs | 3 | 2,655 | 61.39% | 55.44% | 5.95% | Partial |
-| Llama 3.1 8B | 20 docs | 4* | 2,655 | 59.02% | 52.81% | 6.21% | ✅ Yes |
+| Llama 3.1 8B | 20 docs | 5 | 2,655 | 59.02% | 52.81% | 6.21% | ✅ Yes |
 | Llama 3.1 8B | 30 docs | 7 | 2,655 | 46.29% | 40.75% | 5.54% | ✅ Yes |
 | Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
 | Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
