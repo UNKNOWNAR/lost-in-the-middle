@@ -52,6 +52,24 @@ plot_graph_with_baseline(
     show_baseline=False
 )
 
+# Recreate 20-docs graph (full range with baseline)
+plot_graph_with_baseline(
+    "results/llama 3.1 8b/20documents_results/results_llama3_complete.json",
+    "results/llama 3.1 8b/20documents_results/lost_in_the_middle_20_docs_with_baseline.png",
+    "Lost in the Middle Evaluation (Llama 3 - 20 Docs)",
+    ylim=(0, 100),
+    show_baseline=True
+)
+
+# Recreate 20-docs graph (full range without baseline)
+plot_graph_with_baseline(
+    "results/llama 3.1 8b/20documents_results/results_llama3_complete.json",
+    "results/llama 3.1 8b/20documents_results/lost_in_the_middle_20_docs_final.png",
+    "Lost in the Middle Evaluation (Llama 3 - 20 Docs)",
+    ylim=(0, 100),
+    show_baseline=False
+)
+
 # Recreate 30-docs graph (full range 0-100, no zoomed title)
 plot_graph_with_baseline(
     "results/llama 3.1 8b/30documents_results/results_llama3_30docs_final_run.json",
