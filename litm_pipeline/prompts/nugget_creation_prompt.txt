@@ -1,0 +1,26 @@
+You are a fact extraction specialist. Given a query and a set of relevant documents, extract all key information nuggets that a comprehensive answer to the query MUST cover.
+
+A nugget is:
+- One discrete, verifiable fact or argument (one sentence max)
+- Grounded in the provided documents only
+- Directly relevant to answering the query
+
+For each nugget assign a vitality label:
+- "vital": Without this nugget, the answer is seriously incomplete
+- "okay": Useful supporting detail but not essential
+
+QUERY: {query_text}
+
+SOURCE DOCUMENTS:
+{golden_passages_text}
+
+Return ONLY a JSON array, no other text:
+[
+  {{"id": 1, "text": "nugget text here", "vitality": "vital"}},
+  {{"id": 2, "text": "nugget text here", "vitality": "okay"}}
+]
+
+Rules:
+- Extract between 6 and 15 nuggets depending on query complexity
+- Do NOT repeat the same fact in different words
+- Each nugget must be traceable to at least one source document
