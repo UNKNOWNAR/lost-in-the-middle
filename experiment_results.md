@@ -88,7 +88,7 @@
 
 **Run time:** ~28.4 hours
 
-![Llama 3.1 8B — 30 Documents](./results/llama%203.1%208b/30documents_results/lost_in_the_middle_30_docs_final.png)
+![Llama 3.1 8B — 30 Documents](./results/llama%203.1%208b/30documents_results/llama3_30docs_complete_graph.png)
 
 **Key observations:**
 - The performance valley deepens and widens compared to 20 docs.
