@@ -78,13 +78,13 @@
 
 | Gold Position | Label | Correct | Total | Accuracy |
 |:---:|:---:|:---:|:---:|:---:|
-| **0** | Beginning | 1,229 | 2,655 | **46.29%** |
-| **4** | 5th | 1,091 | 2,655 | **41.09%** |
-| **9** | 10th | 1,102 | 2,655 | **41.51%** |
-| **14** | 15th | 1,085 | 2,655 | **40.87%** |
-| **19** | 20th | 1,082 | 2,655 | **40.75%** |
-| **24** | 25th | 1,082 | 2,655 | **40.75%** |
-| **29** | End | 1,120 | 2,655 | **42.18%** |
+| **0** | Beginning | 1,532 | 2,655 | **57.70%** |
+| **4** | 5th | 1,360 | 2,655 | **51.22%** |
+| **9** | 10th | 1,385 | 2,655 | **52.17%** |
+| **14** | 15th | 1,368 | 2,655 | **51.53%** |
+| **19** | 20th | 1,362 | 2,655 | **51.30%** |
+| **24** | 25th | 1,358 | 2,655 | **51.15%** |
+| **29** | End | 1,404 | 2,655 | **52.88%** |
 
 **Run time:** ~28.4 hours
 
@@ -92,9 +92,9 @@
 
 **Key observations:**
 - The performance valley deepens and widens compared to 20 docs.
-- Floor accuracy plateaus at **40.75%** across positions 19 and 24.
-- Strong recency recovery to **42.18%** at Position 29 (+1.43% from the floor).
-- Absolute performance ceiling declines with each added doc set (49.49% → 47.83% → 46.29%).
+- Floor accuracy plateaus at **51.15%** around Position 24.
+- Strong recency recovery to **52.88%** at Position 29 (+1.73% from the floor).
+- Absolute performance ceiling declines with each added doc set (61.39% -> 59.02% -> 57.70%).
 
 ---
 
@@ -233,7 +233,7 @@
 | Model | Peak (Pos 0) | Trough | End | Δ (Peak→Trough) |
 |-------|:-----------:|:------:|:---:|:---------------:|
 | **Llama-2-70b-chat** (paper) | ~53% | ~35% | ~44% | ~−18% |
-| **Llama 3.1 8B** (ours) | 46.29% | 40.75% | 42.18% | −5.54% |
+| **Llama 3.1 8B** (ours) | 57.70% | 51.15% | 52.88% | −6.55% |
 | **Qwen 2.5 7B** (ours) | 54.80% | 47.34% | 53.79% | −7.46% |
 
 ![Original Paper — 30-Doc Results](./results/paper_original_30docs.png)
@@ -281,7 +281,7 @@ Despite being ~8× smaller in parameters, Llama 3.1 8B shows a **shallower** pos
 |-------|---------|-----------|-------|-----------|------------|----------|---------|
 | Llama 3.1 8B | 10 docs | 3 | 2,655 | 61.39% | 55.44% | 5.95% | Partial |
 | Llama 3.1 8B | 20 docs | 5 | 2,655 | 59.02% | 52.81% | 6.21% | ✅ Yes |
-| Llama 3.1 8B | 30 docs | 7 | 2,655 | 46.29% | 40.75% | 5.54% | ✅ Yes |
+| Llama 3.1 8B | 30 docs | 7 | 2,655 | 57.70% | 51.15% | 6.55% | ✅ Yes |
 | Phi-3 Mini | 10 docs | 3 | 300 | 50.67% | 41.00% | 9.67% | ✅ Strong |
 | Qwen 2.5 7B | 10 docs | 3 | 2,655 | 58.72% | 52.88% | 5.84% | ✅ Yes |
 | Qwen 2.5 7B | 20 docs | 5 | 2,655 | 55.74% | 48.85% | 6.89% | ✅ Yes |

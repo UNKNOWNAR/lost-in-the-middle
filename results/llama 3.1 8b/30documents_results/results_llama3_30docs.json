@@ -1,0 +1,51 @@
+[
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 0,
+    "Accuracy (%)": 57.70,
+    "Correct": 1532,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 4,
+    "Accuracy (%)": 51.22,
+    "Correct": 1360,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 9,
+    "Accuracy (%)": 52.17,
+    "Correct": 1385,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 14,
+    "Accuracy (%)": 51.53,
+    "Correct": 1368,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 19,
+    "Accuracy (%)": 51.30,
+    "Correct": 1362,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 24,
+    "Accuracy (%)": 51.15,
+    "Correct": 1358,
+    "Total": 2655
+  },
+  {
+    "Context Size (Documents)": "30",
+    "Position of Answer (Gold Index)": 29,
+    "Accuracy (%)": 52.88,
+    "Correct": 1404,
+    "Total": 2655
+  }
+]
