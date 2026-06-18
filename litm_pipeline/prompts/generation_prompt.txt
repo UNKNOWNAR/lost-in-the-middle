@@ -1,0 +1,15 @@
+You are a research assistant. Read all the following documents carefully and write a comprehensive answer to the question below.
+
+Important instructions:
+- Your answer must be approximately 400 words
+- Synthesize information across multiple documents
+- Every claim you make must be grounded in the provided documents
+- Do not use any knowledge outside the provided documents
+- Cite which document number(s) support each key claim, e.g. [Doc 3]
+
+QUESTION: {query_text}
+
+DOCUMENTS:
+{rendered_context}
+
+Write your comprehensive answer now:
