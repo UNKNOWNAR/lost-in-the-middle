@@ -88,7 +88,10 @@ This document tracks the progress of the LitM RAG pipeline execution, including 
 
 ## Phase 4: Context Construction
 
-*Log will be updated as we proceed through the pipeline phases.*
+- [x] **Setup & Data Structure Definitions**: 100% COMPLETE
+- [x] **Base LLM Answer Generation (Qwen 2.5 7B)**: 100% COMPLETE
+- [x] **Nugget Recall Evaluation**: 100% COMPLETE
+- [x] **Support/Hallucination Evaluation**: 100% COMPLETE (All Conditions)
 
 ---
 
@@ -110,7 +113,6 @@ This document tracks the progress of the LitM RAG pipeline execution, including 
 ### Work Completed / Decisions Made:
 1. **Custom LLM-as-a-Judge script (Nuggets):** We built `06_evaluate_answers.py` because the new "Nugget-based" data structure differs from the exact-match approach of the original pipeline.
 2. **Custom LLM-as-a-Judge script (Support):** We built `07_evaluate_support.py` to evaluate the **Hallucination Index**. It passes the full 20-document context and the model answer to Gemini 1.5 Flash, decomposing answers into statements and classifying each as Fully Supported, Partially Supported, or Unsupported.
-3. **Implementation Details:**
    - Evaluator queries the Gemini API (`gemini-3.1-flash-lite`) using strict prompts to detect factual overlap and evaluate support.
    - Built-in rate limiting handles `429` (Quota exceeded) and `503` (Service Unavailable) limits automatically by pausing and retrying to abide by the 15 RPM limit.
 4. **Output format:** Results are recorded as JSON containing detailed query-level mappings of exactly which nuggets/statements were covered/supported.

@@ -41,6 +41,20 @@ load_dotenv(PIPELINE_ROOT / ".env", override=True)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
+GROQ_KEYS = []
+if GROQ_API_KEY:
+    GROQ_KEYS.append(GROQ_API_KEY)
+idx = 1
+while True:
+    key_name = f"GROQ_API_KEY_{idx}"
+    val = os.getenv(key_name)
+    if not val:
+        break
+    GROQ_KEYS.append(val)
+    idx += 1
+
+current_groq_key_idx = 0
+
 client = None
 if GEMINI_API_KEY:
     try:
@@ -88,44 +102,54 @@ def call_gemini_with_rate_limit(prompt: str, model_name: str = "gemini-3.1-flash
 
 last_groq_call_time = 0.0
 
-def call_groq_with_rate_limit(prompt: str) -> str:
-    global last_groq_call_time
-    if not GROQ_API_KEY:
-        raise ValueError("GROQ_API_KEY not found. Please set it in .env")
+def call_groq_with_rate_limit(prompt: str, model_name: str = "llama-3.1-8b-instant") -> str:
+    global last_groq_call_time, current_groq_key_idx
+    if not GROQ_KEYS:
+        raise ValueError("No GROQ API keys found in environment. Check GROQ_API_KEY or GROQ_API_KEY_1.")
     
-    elapsed = time.time() - last_groq_call_time
-    if elapsed < MIN_INTERVAL:
-        time.sleep(MIN_INTERVAL - elapsed)
+    for attempt in range(len(GROQ_KEYS)):
+        api_key = GROQ_KEYS[current_groq_key_idx]
+        
+        elapsed = time.time() - last_groq_call_time
+        if elapsed < MIN_INTERVAL:
+            time.sleep(MIN_INTERVAL - elapsed)
 
-    last_groq_call_time = time.time()
+        last_groq_call_time = time.time()
 
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0"
-    }
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0"
+        }
 
-    data = {
-        "model": "llama-3.1-8b-instant",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.0,
-        "max_tokens": 1500,
-        "response_format": {"type": "json_object"}
-    }
+        data = {
+            "model": model_name,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.0,
+            "max_tokens": 1500,
+            "response_format": {"type": "json_object"}
+        }
 
-    req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
-    
-    try:
-        with urllib.request.urlopen(req) as response:
-            resp_data = response.read().decode("utf-8")
-            resp_json = json.loads(resp_data)
-            return resp_json["choices"][0]["message"]["content"].strip()
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8")
-        raise RuntimeError(f"Groq API Error {e.code}: {error_body}")
+        req = urllib.request.Request(url, data=json.dumps(data).encode("utf-8"), headers=headers, method="POST")
+        
+        try:
+            with urllib.request.urlopen(req) as response:
+                resp_data = response.read().decode("utf-8")
+                resp_json = json.loads(resp_data)
+                return resp_json["choices"][0]["message"]["content"].strip()
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode("utf-8")
+            if e.code == 429:
+                logger.warning(f"Rate limit hit with Groq key index {current_groq_key_idx} (Error 429). Rotating key...")
+                current_groq_key_idx = (current_groq_key_idx + 1) % len(GROQ_KEYS)
+                time.sleep(2)
+                continue
+            raise RuntimeError(f"Groq API Error {e.code}: {error_body}")
+            
+    raise RuntimeError("All available Groq API keys are currently rate-limited (429).")
 
 PROMPT_TEMPLATE = """You are a strict academic evaluator. 
 Given a MODEL ANSWER and a list of FACTUAL NUGGETS, your job is to determine whether the MODEL ANSWER explicitly contains the information described in each nugget.
@@ -161,6 +185,9 @@ def main():
     parser.add_argument("--provider", type=str, default="groq", choices=["gemini", "groq"], help="LLM provider to use")
     parser.add_argument("--model", type=str, default="gemini-3.1-flash-lite", help="Model name to use under the selected provider")
     args = parser.parse_args()
+
+    if args.provider == "groq" and args.model == "gemini-3.1-flash-lite":
+        args.model = "llama-3.1-8b-instant"
 
     responses_path = Path(args.responses)
     if not responses_path.exists():
@@ -256,7 +283,7 @@ def main():
                 if args.provider == "gemini":
                     resp_text = call_gemini_with_rate_limit(prompt, model_name=args.model)
                 else:
-                    resp_text = call_groq_with_rate_limit(prompt)
+                    resp_text = call_groq_with_rate_limit(prompt, model_name=args.model)
                     
                 # Strip markdown code fences if present
                 cleaned_text = re.sub(r"^```(?:json)?\s*", "", resp_text)
@@ -314,7 +341,14 @@ def main():
                 }
                 
                 save_atomic(results, output_path)
-                logger.info(f"Query {query_id}: {query_covered_vital}/{query_vital} vital, {query_covered_okay}/{query_okay} okay")
+                running_vital = (covered_vital / total_vital * 100) if total_vital > 0 else 0.0
+                running_okay = (covered_okay / total_okay * 100) if total_okay > 0 else 0.0
+                progress_pct = ((idx + 1) / len(responses)) * 100
+                logger.info(
+                    f"[{responses_path.name}] Progress: {idx+1}/{len(responses)} ({progress_pct:.1f}%) | "
+                    f"Query {query_id}: {query_covered_vital}/{query_vital} vital | "
+                    f"Running Vital Recall: {running_vital:.1f}%, Okay Recall: {running_okay:.1f}%"
+                )
                 success = True
                 break
             except Exception as e:

@@ -126,10 +126,13 @@ def main():
     parser.add_argument("--limit", type=int, default=None, help="Limit queries evaluated per run (for debugging)")
     parser.add_argument("--dry-run", action="store_true", help="Only build files map and exit without calling LLM API")
     parser.add_argument("--nugget-model", type=str, default="gemma-4-31b-it", help="Model name for Nugget evaluator")
+    parser.add_argument("--nugget-provider", type=str, default="gemini", choices=["gemini", "groq"], help="LLM provider for Nugget evaluator")
     parser.add_argument("--support-model", type=str, default="gemma-4-26b-a4b-it", help="Model name for Support evaluator")
     parser.add_argument("--mode", type=str, default="all", choices=["all", "nugget-only", "support-only", "compile-only"],
                         help="Run mode: all, nugget-only, support-only, or compile-only")
+    parser.add_argument("--k", type=int, default=20, help="Total number of documents in context")
     args = parser.parse_args()
+    k = args.k
 
     python_executable = sys.executable
 
@@ -139,7 +142,10 @@ def main():
     conditions = list(range(1, 11))
     
     # Check if necessary directories exist
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "answers").mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "reports").mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "figures").mkdir(parents=True, exist_ok=True)
+    (RESULTS_DIR / "logs").mkdir(parents=True, exist_ok=True)
     EVALS_DIR.mkdir(parents=True, exist_ok=True)
 
     # If compile-only, skip execution loop
@@ -148,8 +154,8 @@ def main():
     else:
         # We will process each condition sequentially
         for c in conditions:
-            responses_file = RESULTS_DIR / f"k20_{c}.jsonl"
-            contexts_file = DATA_PROCESSED / "contexts" / "k20" / f"condition_{c}.jsonl"
+            responses_file = RESULTS_DIR / "answers" / f"k{k}_{c}.jsonl"
+            contexts_file = DATA_PROCESSED / "contexts" / f"k{k}" / f"condition_{c}.jsonl"
             
             if not responses_file.exists():
                 logger.error(f"Responses file not found: {responses_file}. Skipping condition {c}.")
@@ -162,7 +168,7 @@ def main():
                 logger.info(f"[DRY-RUN] Would evaluate Condition {c}")
                 continue
 
-            logger.info(f"=== Starting Evaluation: Condition {c} (k20_{c}) ===")
+            logger.info(f"=== Starting Evaluation: Condition {c} (k{k}_{c}) ===")
 
             # 1. Run Nugget Recall Evaluator (if mode is all or nugget-only)
             if args.mode in ["all", "nugget-only"]:
@@ -170,7 +176,7 @@ def main():
                     python_executable,
                     str(SCRIPT_DIR / "06_evaluate_answers.py"),
                     "--responses", str(responses_file),
-                    "--provider", "gemini",
+                    "--provider", args.nugget_provider,
                     "--model", args.nugget_model
                 ]
                 if args.limit:
@@ -212,9 +218,9 @@ def main():
     summary_data = []
     
     for c in conditions:
-        responses_file = RESULTS_DIR / f"k20_{c}.jsonl"
-        nugget_eval_file = EVALS_DIR / f"k20_{c}_eval.json"
-        support_eval_file = EVALS_DIR / f"k20_{c}_support_eval.json"
+        responses_file = RESULTS_DIR / "answers" / f"k{k}_{c}.jsonl"
+        nugget_eval_file = EVALS_DIR / f"k{k}_{c}_eval.json"
+        support_eval_file = EVALS_DIR / f"k{k}_{c}_support_eval.json"
         
         if not responses_file.exists():
             continue
@@ -224,22 +230,29 @@ def main():
         support_stats = load_support_eval(support_eval_file)
         
         # Position mapping explanation for report
-        position_map = {
-            1: "1-3 (Primacy)",
-            2: "3-5",
-            3: "5-7",
-            4: "7-9",
-            5: "9-11 (Middle)",
-            6: "11-13 (Middle)",
-            7: "13-15",
-            8: "15-17",
-            9: "17-19",
-            10: "18-20 (Recency)"
-        }
+        if k == 20:
+            starting_ranks = [1, 3, 5, 7, 9, 11, 13, 15, 17, 18]
+        elif k == 40:
+            starting_ranks = [1, 5, 9, 13, 18, 22, 26, 30, 34, 38]
+        else:
+            starting_ranks = list(range(1, k, max(1, k // 10)))[:10]
+
+        start_rank = starting_ranks[c-1]
+        end_rank = start_rank + 2
+        
+        label = ""
+        if c == 1:
+            label = " (Primacy)"
+        elif c in [5, 6]:
+            label = " (Middle)"
+        elif c == 10:
+            label = " (Recency)"
+            
+        gold_positions = f"{start_rank}-{end_rank}{label}"
         
         summary_data.append({
             "condition": c,
-            "gold_positions": position_map.get(c, "N/A"),
+            "gold_positions": gold_positions,
             "mean_len": word_stats["mean"],
             "median_len": word_stats["median"],
             "mode_len": word_stats["mode"],
@@ -252,12 +265,12 @@ def main():
         })
 
     # Render RESULTS.md content
-    results_md_path = RESULTS_DIR / "RESULTS.md"
+    results_md_path = RESULTS_DIR / "reports" / f"RESULTS_k{k}.md"
     
     # Header & Description
-    md_content = """# Lost-in-the-Middle (LitM) Consolidated Evaluation Results
+    md_content = f"""# Lost-in-the-Middle (LitM) Consolidated Evaluation Results (k={k})
 
-This document summarizes the performance of **Qwen 2.5 7B Instruct** on the **119 Non-Factoid queries** across all 10 context placement conditions (k=20 total documents).
+This document summarizes the performance of **Qwen 2.5 7B Instruct** on the **119 Non-Factoid queries** across all 10 context placement conditions (k={k} total documents).
 
 ## Consolidated Metric Summary
 
@@ -269,7 +282,7 @@ Below is the consolidated performance table across all 10 conditions. The positi
 
     for row in summary_data:
         md_content += (
-            f"| **k20_{row['condition']}** | {row['gold_positions']} | "
+            f"| **k{k}_{row['condition']}** | {row['gold_positions']} | "
             f"**{row['vital_recall']}%** | {row['okay_recall']}% | "
             f"**{row['global_support_score']}%** | {row['hallucination_rate']}% | "
             f"{row['mean_len']:.1f} | {row['median_len']:.0f} | {row['mode_len']:.0f} |\n"

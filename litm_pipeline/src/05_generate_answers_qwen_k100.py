@@ -2,6 +2,7 @@
 import os
 os.environ["VLLM_USE_FLASHINFER_SAMPLER"] = "0"
 os.environ["VLLM_ATTENTION_BACKEND"] = "TRITON_ATTN"
+os.environ["VLLM_ALLOW_LONG_MAX_MODEL_LEN"] = "1"
 
 import sys, json, time, logging
 from pathlib import Path
@@ -9,12 +10,12 @@ from pathlib import Path
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s", datefmt="%H:%M:%S")
-logger = logging.getLogger("qwen_gen")
+logger = logging.getLogger("qwen_gen_k100")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 IS_KAGGLE  = os.path.exists("/kaggle/input")
 MODEL_NAME = "/kaggle/input/models/qwen-lm/qwen2.5/transformers/7b-instruct/1" 
-DATA_BASE  = Path("/kaggle/input/datasets/arinjaysarkar/k40data") # Updated to k40 dataset
+DATA_BASE  = Path("/kaggle/input/datasets/unknownarunkownar/k-100-data/k100") # Updated to k100 dataset
 OUTPUT_DIR = Path("/kaggle/working/generated_answers/qwen") 
 
 # ── Validate paths ────────────────────────────────────────────────────────────
@@ -24,23 +25,12 @@ if IS_KAGGLE:
             logger.error(f"{lbl} NOT FOUND: {p}")
             sys.exit(1)
 
-# ── THE KEY FIX ───────────────────────────────────────────────────────────────
-import vllm.config as _vllm_cfg
-if not hasattr(_vllm_cfg, '_orig_get_max_len'):
-    _orig_get_max_len = _vllm_cfg._get_and_verify_max_len
-    def _patched_get_max_len(hf_config, max_model_len, *args, **kwargs):
-        rs = getattr(hf_config, "rope_scaling", None)
-        if isinstance(rs, dict):
-            rope_type = rs.get("rope_type") or rs.get("type") or "default"
-            if rope_type in ("default", "linear") and "factor" not in rs:
-                hf_config = type(hf_config)(**{**hf_config.to_dict(),
-                    "rope_scaling": {**rs, "factor": 1.0}})
-        return _orig_get_max_len(hf_config, max_model_len, *args, **kwargs)
-    _vllm_cfg._get_and_verify_max_len = _patched_get_max_len
+# Note: VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 (set above) handles the max_model_len
+# override natively — no monkey-patching needed for Qwen.
 
 # ── Input discovery ───────────────────────────────────────────────────────────
 def get_input_dir() -> Path:
-    search = DATA_BASE if IS_KAGGLE else DATA_BASE / "contexts" / "k40"
+    search = DATA_BASE if IS_KAGGLE else DATA_BASE / "contexts" / "k100"
 
     files = list(search.glob("condition_*.jsonl"))
 
@@ -81,10 +71,14 @@ def run_vllm(input_files):
     ngpu = torch.cuda.device_count()
     tp = min(ngpu, 2) if ngpu > 0 else 1
 
+    # Absolute max tokens found in k=100 dataset is 87,864 tokens.
+    # Setting max_model_len=90112 (allowing ~2,200 token buffer for generation).
+    # NOTE: On Kaggle T4 GPUs (16GB VRAM), 90k tokens of KV cache is extremely large.
+    # If you experience OOM errors, add `quantization="bitsandbytes"` to the LLM config below.
     llm = LLM(
         model=MODEL_NAME,
         tensor_parallel_size=tp,
-        max_model_len=32768,
+        max_model_len=90112,
         trust_remote_code=True,
         dtype="float16",
         enforce_eager=True,
@@ -94,12 +88,12 @@ def run_vllm(input_files):
     tokenizer = llm.get_tokenizer()
 
     total = len(input_files)
-    done  = sum(1 for fp in input_files if (OUTPUT_DIR / f"k40_{fp.stem.split('_')[-1]}.jsonl").exists())
+    done  = sum(1 for fp in input_files if (OUTPUT_DIR / f"k100_{fp.stem.split('_')[-1]}.jsonl").exists())
     start_t = time.time()
 
     for fp in input_files:
         c_idx = fp.stem.split("_")[-1]
-        out_f = OUTPUT_DIR / f"k40_{c_idx}.jsonl"
+        out_f = OUTPUT_DIR / f"k100_{c_idx}.jsonl"
         if out_f.exists(): continue
 
         t0 = time.time()
@@ -118,7 +112,7 @@ def run_vllm(input_files):
                 fh.write(json.dumps({
                     "query_id": qid,
                     "query_text": qtxt,
-                    "k": 40,
+                    "k": 100,
                     "condition": int(c_idx),
                     "qwen_answer": out.outputs[0].text.strip(),
                 }, ensure_ascii=False) + "\n")

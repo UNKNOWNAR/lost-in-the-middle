@@ -257,11 +257,21 @@ def main():
             }
             
             save_atomic(results, output_path)
-            logger.info(f"Query {query_id} SUCCEEDED with model {args.model}: {fully} Fully, {partially} Partially, {unsupported} Unsupported")
             
             total_fully += fully
             total_partially += partially
             total_unsupported += unsupported
+            
+            total_statements_all = total_fully + total_partially + total_unsupported
+            running_support = ((total_fully + 0.5 * total_partially) / total_statements_all * 100) if total_statements_all > 0 else 0.0
+            running_hallucination = (total_unsupported / total_statements_all * 100) if total_statements_all > 0 else 0.0
+            progress_pct = ((idx + 1) / len(responses)) * 100
+            
+            logger.info(
+                f"[{responses_path.name}] Progress: {idx+1}/{len(responses)} ({progress_pct:.1f}%) | "
+                f"Query {query_id} SUCCEEDED: {fully} Fully, {partially} Partially, {unsupported} Unsupported | "
+                f"Running Support: {running_support:.1f}%, Hallucination: {running_hallucination:.1f}%"
+            )
             success = True
         except Exception as e:
             logger.error(f"Failed to evaluate query {query_id} using model {args.model}: {e}")
