@@ -103,6 +103,9 @@ This document tracks the progress of the LitM RAG pipeline execution, including 
 1. **Model & Platform:** Generated `k20_1` outputs on Kaggle using T4 x2 instances. We used `vLLM` to accelerate generation.
 2. **Context Window Configuration:** Due to Kaggle T4 limitations, we successfully ran generation for the `k20_1` condition.
 3. **Bug Fixes:** Injected monkey-patches to resolve a vLLM configuration bug regarding `rope_scaling` factors which broke the models on T4.
+4. **K=100 Scale Outlier Dropping:**
+   - *Issue:* When scaling up to the `k100` condition (100 documents), prompt lengths approached ~90,000 tokens. Kaggle's free T4 x2 instances (16GB VRAM each) suffered from hard `CUDA out of memory` crashes inside vLLM's xformers backend when processing prompts longer than ~75,000 tokens due to tight KV cache limits.
+   - *Resolution:* Implemented a strict 70,000 token limit. We identified exactly 4 outlier queries in the dataset that exceeded this limit (IDs: 2034676, 2040352, 2044323, 2051782). Instead of crashing the entire condition batch, we explicitly drop these queries by substituting a dummy prompt before generation and saving an empty string in the output. This allows vLLM to utilize continuous batching at maximum speed for the remaining 115 queries without risking hardware failure.
 
 ---
 
