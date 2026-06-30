@@ -170,7 +170,7 @@ async def process_condition(fp, c_idx):
 
         # Ensure this batch took at least 60 seconds
         elapsed = time.time() - batch_start_time
-        if elapsed < 62 and batch_start + BATCH_SIZE < len(pending):
+        if elapsed < 62:
             wait = 62 - elapsed
             print(f"  Batch done in {elapsed:.0f}s — waiting {wait:.0f}s before next batch...", flush=True)
             await asyncio.sleep(wait)
@@ -185,8 +185,6 @@ async def main():
                    key=lambda x: int(re.findall(r'\d+', x.stem)[-1]))
     for fp in files:
         c_idx = fp.stem.split("_")[-1]
-        if int(c_idx) < 5:
-            continue
         await process_condition(fp, c_idx)
 
 if __name__ == "__main__":

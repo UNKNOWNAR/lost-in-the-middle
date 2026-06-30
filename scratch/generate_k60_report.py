@@ -12,7 +12,16 @@ markdown = [
     "|:---:|:---:|:---:|:---:|:---:|"
 ]
 
-TOTAL_QUERIES = 102
+DEGENERATE_QIDS = {
+    '2001908', '2003157', '2003976', '2026150', '2027130', '2027497',
+    '2033470', '2034676', '2040352', '2044323', '2046027', '2051782',
+    '3010623', '3100188', '3100292', '421946', '818583'
+}
+
+# The 2 queries we are dropping to hit exactly 100 (the worst safety offenders)
+DROPPED_QIDS = {'2001010', '2005952'}
+
+TOTAL_QUERIES = 100
 ranks = ["1-3 (Primacy)", "7-9", "14-16", "21-23", "28-30 (Middle)", "35-37", "42-44", "48-50", "54-56", "58-60 (Recency)"]
 
 for i in range(1, 11):
@@ -20,10 +29,14 @@ for i in range(1, 11):
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        done = len(data)
+            
+        # Filter down to exactly the 100 valid queries
+        filtered_data = {k: v for k, v in data.items() if k not in DEGENERATE_QIDS and k not in DROPPED_QIDS}
+        
+        done = len(filtered_data)
         if done > 0:
-            vr = sum(v["vital_recall"] for v in data.values()) / done
-            ok = sum(v["okay_recall"] for v in data.values()) / done
+            vr = sum(v["vital_recall"] for v in filtered_data.values()) / done
+            ok = sum(v["okay_recall"] for v in filtered_data.values()) / done
             prog = f"{done}/{TOTAL_QUERIES} ({done/TOTAL_QUERIES*100:.1f}%)"
             if done == TOTAL_QUERIES:
                 prog = f"**{prog} ✅**"
