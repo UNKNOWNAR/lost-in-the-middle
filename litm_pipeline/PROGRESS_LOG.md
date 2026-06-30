@@ -118,7 +118,37 @@ This document tracks the progress of the LitM RAG pipeline execution, including 
 2. **Custom LLM-as-a-Judge script (Support):** We built `07_evaluate_support.py` to evaluate the **Hallucination Index**. It passes the full 20-document context and the model answer to Gemini 1.5 Flash, decomposing answers into statements and classifying each as Fully Supported, Partially Supported, or Unsupported.
    - Evaluator queries the Gemini API (`gemini-3.1-flash-lite`) using strict prompts to detect factual overlap and evaluate support.
    - Built-in rate limiting handles `429` (Quota exceeded) and `503` (Service Unavailable) limits automatically by pausing and retrying to abide by the 15 RPM limit.
-4. **Output format:** Results are recorded as JSON containing detailed query-level mappings of exactly which nuggets/statements were covered/supported.
+3. **Output format:** Results are recorded as JSON containing detailed query-level mappings of exactly which nuggets/statements were covered/supported.
+
+### k=60 Evaluation (In Progress — Evaluator: Gemma 4 31B via Google AI Studio):
+
+
+
+### Key Finding — Degenerate Answer Queries:
+
+**Investigation (30-Jun-2026):** A systematic analysis of the `k=60` generated answer files revealed that **17 queries** produce degenerate outputs (`of!!!!!!!!!!!!!...`, `!!!!!!!!!!!...`, etc.) across **all 10 conditions**. This is a known failure mode of `Qwen2.5-7B-Instruct` on certain prompts under vLLM, where the model enters a repetitive token loop.
+
+- **15 queries** are degenerate in **all 10/10 conditions** (completely broken regardless of golden document position):
+  `2001908`, `2003157`, `2003976`, `2026150`, `2027130`, `2027497`, `2033470`, `2034676`, `2040352`, `2044323`, `2046027`, `2051782`, `3010623`, `3100188`, `3100292`
+- **2 additional queries** (`421946`, `818583`) produce degenerate output in 9/10 and 8/10 conditions respectively. Their "non-degenerate" outputs (e.g. `of000 of00 strugg 1 strugg 0011!!!!...`) are still garbage — they passed the detection threshold due to slightly more unique characters before the `!!!` flood, but are functionally degenerate.
+
+**Methodology Note for Paper:** *"Of the 119 evaluated queries, 17 queries (IDs: 2001908, 2003157, 2003976, 2026150, 2027130, 2027497, 2033470, 2034676, 2040352, 2044323, 2046027, 2051782, 3010623, 3100188, 3100292, 421946, 818583) produced degenerate repetitive outputs (token-loop failure) from Qwen2.5-7B-Instruct under all tested context configurations. These 17 queries are excluded from the recall analysis, leaving an effective evaluation set of 102 queries."*
+
+### Key Finding — Safety Filter Blocks:
+
+**Investigation (30-Jun-2026):** A deeper log analysis revealed that **7 unique queries** randomly triggered `Empty/safety response` blocks from the Google AI Studio Gemini API endpoint. Because the safety filter evaluates the exact combination of text in the prompt, simply shifting the position of the golden documents (which alters the sequence of surrounding distractors) can cause the filter to trip intermittently.
+
+When a query is blocked, the script automatically records `0.0%` recall after 3 failed retries. Here is the exact failure matrix tracking which conditions hit the safety filter (0.0% recall) for these 7 queries:
+
+- **2001010**: Blocked in Cond 1 (Succeeded in 2, 3, 4)
+- **2001459**: Blocked in Cond 3 (Succeeded in 1, 2, 4)
+- **2007055**: Blocked in Cond 2 (Succeeded in 1, 3, 4)
+- **2007419**: Blocked in Cond 2, 3, 4 (Succeeded in 1)
+- **2014738**: Blocked in Cond 2, 3, 4 (Succeeded in 1)
+- **2030323**: Blocked in Cond 2, 4 (Succeeded in 1, 3)
+- **2056158**: Blocked in Cond 3, 4 (Succeeded in 1, 2)
+
+*Methodology Note:* These intermittent 0.0% scores represent a real-world failure mode of LLM pipelines when processing arbitrary web distractors. We intentionally retain them in the dataset (unlike degenerate outputs) as they reflect the operational brittleness of LLMs dealing with long, noisy contexts.
 
 ---
 

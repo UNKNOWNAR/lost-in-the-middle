@@ -11,7 +11,7 @@ import json
 import time
 import logging
 from pathlib import Path
-from pydantic import BaseModel
+import re
 
 # Setup logging (configured for Jupyter compatibility)
 logger = logging.getLogger("06_evaluate_answers_vllm")
@@ -41,16 +41,33 @@ NUGGETS_PATH = next((p for p in possible_nugget_paths if p.exists()), possible_n
 OUTPUT_DIR = Path("/kaggle/working/evaluations")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# ── Pydantic Schema for Guided Decoding ──────────────────────────────────────
-class NuggetEvaluation(BaseModel):
-    id: int
-    covered: bool
-
-class AnswerEvaluation(BaseModel):
-    evaluations: list[NuggetEvaluation]
+# ── JSON Output Parser (robust fallback for free-form output) ────────────────
+def parse_eval_output(text: str) -> list:
+    """Parse model output: try direct JSON, then regex extraction."""
+    text = text.strip()
+    # Try direct parse first
+    try:
+        data = json.loads(text)
+        return data.get("evaluations", [])
+    except Exception:
+        pass
+    # Try to find a JSON object anywhere in the text
+    try:
+        match = re.search(r'\{.*?\"evaluations\".*?\}', text, re.DOTALL)
+        if match:
+            data = json.loads(match.group(0))
+            return data.get("evaluations", [])
+    except Exception:
+        pass
+    # Last resort: extract individual id/covered pairs
+    try:
+        items = re.findall(r'\{\s*\"id\"\s*:\s*(\d+)\s*,\s*\"covered\"\s*:\s*(true|false)\s*\}', text, re.IGNORECASE)
+        return [{"id": int(i), "covered": c.lower() == "true"} for i, c in items]
+    except Exception:
+        return []
 
 PROMPT_TEMPLATE = """You are a strict academic evaluator. 
-Given a MODEL ANSWER and a list of FACTUAL NUGGETS, your job is to determine whether the MODEL ANSWER explicitly contains the information described in each nugget.
+Given a MODEL ANSWER and a list of FACTUAL NUGGETS, determine whether the MODEL ANSWER contains the information in each nugget.
 
 MODEL ANSWER:
 {model_answer}
@@ -58,7 +75,9 @@ MODEL ANSWER:
 FACTUAL NUGGETS:
 {nuggets_text}
 
-For each nugget, decide if its core information is covered in the model answer. It does not need to be an exact quote, but the factual meaning must be present.
+For each nugget, decide if its core information is covered in the model answer.
+Respond with ONLY valid JSON in this exact format, nothing else:
+{{"evaluations": [{{"id": 1, "covered": true}}, {{"id": 2, "covered": false}}]}}
 """
 
 def main():
@@ -88,11 +107,11 @@ def main():
     )
     tokenizer = llm.get_tokenizer()
     
-    # Enable guided JSON decoding using Pydantic schema
+    # Plain sampling params — guided decoding (xgrammar) is broken in vLLM 0.7.2 on Kaggle.
+    # We instruct the model in the prompt itself to output strict JSON and parse robustly.
     params = SamplingParams(
         temperature=0.0,
         max_tokens=1500,
-        guided_decoding={"json": AnswerEvaluation.model_json_schema()}
     )
 
     # Find all response files (k100_1.jsonl to k100_10.jsonl)
@@ -173,8 +192,9 @@ def main():
         results = {}
         for (query_id, query_text, nuggets_list), out in zip(queries_meta, outputs):
             try:
-                eval_json = json.loads(out.outputs[0].text.strip())
-                evaluations = eval_json.get("evaluations", [])
+                evaluations = parse_eval_output(out.outputs[0].text)
+                if not evaluations:
+                    logger.warning(f"Query {query_id}: empty evaluations parsed. Raw: {out.outputs[0].text[:100]}")
             except Exception as e:
                 logger.error(f"Failed to parse model output for query {query_id}: {e}")
                 evaluations = []
