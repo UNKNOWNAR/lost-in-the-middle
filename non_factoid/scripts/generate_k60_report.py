@@ -25,7 +25,7 @@ TOTAL_QUERIES = 100
 ranks = ["1-3 (Primacy)", "7-9", "14-16", "21-23", "28-30 (Middle)", "35-37", "42-44", "48-50", "54-56", "58-60 (Recency)"]
 
 for i in range(1, 11):
-    path = f"e:/WorkSpace/lostinthemiddle/litm_pipeline/data/processed/evaluations/k60_{i}_eval.json"
+    path = f"e:/WorkSpace/lostinthemiddle/non_factoid/data/processed/evaluations/k60_{i}_eval.json"
     if os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)

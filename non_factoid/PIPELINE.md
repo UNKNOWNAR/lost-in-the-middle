@@ -12,83 +12,66 @@ non-factoid Retrieval-Augmented Generation. The hypothesis:
 > context, LLMs generate significantly worse answers than when those same documents
 > sit at the START or END — even though total available information is identical.
 
-**Dataset:** TREC 2024 RAG Track (RAGgy-dev, 120 non-factoid queries)  
-**Generator:** Llama 3.1 8B Instruct (Phase 1), Qwen 2.5 7B Instruct (Phase 2)  
-**Context size:** k=20 documents (Phase 1), k=30 (Phase 2)  
-**Conditions:** A (Primacy), B (Middle), C (Recency)  
-**Evaluation:** Gemini Flash (free tier) for nugget + support scoring  
-**Supplementary:** BERTScore, ROUGE-L, optional Prometheus 2  
+**Dataset:** TREC 2024 RAG Track (RAGgy-dev, 120 non-factoid queries)
+**Generator:** Qwen 2.5 7B Instruct (primary), Llama 3.1 8B (Phase 1 baseline)
+**Context sizes:** k=20, k=40, k=60 (10 fine-grained placement conditions each)
+**Conditions:** 10 positions sliding gold docs from ranks 1–3 (Primacy) → 58–60 (Recency)
+**Evaluator (LLM-as-a-judge):** Gemma 4 31B via Google AI Studio (primary), LLaMA 3.3 70B via Groq (fallback)
+**Supplementary:** BERTScore, ROUGE-L
+
+> **Status as of 2026-07-02:** k=20 ✅ k=40 ✅ k=60 ✅ — All 10 conditions fully evaluated, 100 queries each.
 
 ---
 
 ## 2. Repository Structure
 
 ```
-litm_pipeline/
+lostinthemiddle/                           ← workspace root
 │
-├── PIPELINE.md                        ← this file
+├── factoid/                               ← NQ-Open factoid experiment
+│   ├── data/                              # NQ-Open QA data (k=10/20/30 docs)
+│   ├── src/                               # Llama3, Qwen, Phi3 notebooks + reeval scripts
+│   ├── results/                           # per-model result folders (gemma, llama, phi3, qwen)
+│   ├── utilities/                         # plotting scripts
+│   └── lost-in-the-middle/               # original paper codebase (Liu et al. 2024)
+│
+├── non_factoid/                           ← TREC RAG 2024 non-factoid experiment (MAIN)
+│   ├── data/
+│   │   ├── raw/                           # bm25.top1000 JSONL + qrels (gitignored)
+│   │   └── processed/
+│   │       ├── queries.json               # 119 non-factoid queries
+│   │       ├── per_query_passages.json    # golden + distractor passages per query
+│   │       ├── nuggets.json               # 1,187 nuggets across 119 queries
+│   │       ├── nugget_doc_alignment.json  # nugget→doc mapping via embeddings
+│   │       ├── qrels_map.json
+│   │       ├── contexts/                  # built context JSONL files (k=20/40/60)
+│   │       ├── generated_answers/
+│   │       └── evaluations/              # k20/k40/k60 *_eval.json files
+│   │
+│   ├── src/                               # pipeline scripts (01→07 steps)
+│   ├── prompts/                           # generation + nugget prompts
+│   ├── notebooks/
+│   ├── results/
+│   │   ├── answers/                       # k=20/40/60 generated answer JSONL files
+│   │   ├── figures/
+│   │   │   ├── k=20/
+│   │   │   ├── k=40/
+│   │   │   └── k=60/                     # vital_recall_zoomed/full, okay_recall_zoomed/full
+│   │   ├── reports/                       # RESULTS_k60.md (live tracker)
+│   │   ├── logs/
+│   │   └── tables/
+│   ├── scripts/                           # async eval + groq fallback + plotting
+│   │   ├── evaluate_k60_async.py          # primary Gemma async evaluator
+│   │   ├── evaluate_k60_groq.py           # Groq LLaMA fallback evaluator
+│   │   ├── generate_k60_report.py         # markdown report generator
+│   │   └── plot_k60_final.py              # final graph plotter
+│   └── PROGRESS_LOG.md
+│
+├── venv/                                  ← shared Python env
+├── .env                                   ← shared API keys (GEMINI, GROQ)
 ├── requirements.txt
-├── .env.example
-├── .gitignore
-│
-├── data/
-│   ├── raw/                           # downloaded files (gitignored)
-│   │   ├── bm25.top1000.raggy-dev.jsonl
-│   │   ├── qrels.rag24.test-umbrela-all.txt
-│   │   └── topics.raggy-dev.tsv
-│   │
-│   ├── processed/
-│   │   ├── queries.json
-│   │   ├── per_query_passages.json
-│   │   ├── nuggets.json
-│   │   ├── nugget_doc_alignment.json
-│   │   └── contexts/
-│   │       ├── k20/
-│   │       │   ├── condition_A.jsonl
-│   │       │   ├── condition_B.jsonl
-│   │       │   └── condition_C.jsonl
-│   │       └── k30/                   # Phase 2
-│   │           ├── condition_A.jsonl
-│   │           ├── condition_B.jsonl
-│   │           └── condition_C.jsonl
-│   │
-│   └── outputs/
-│       ├── generated_answers/
-│       │   ├── llama/
-│       │   │   ├── k20_A.jsonl
-│       │   │   ├── k20_B.jsonl
-│       │   │   └── k20_C.jsonl
-│       │   └── qwen/                  # Phase 2
-│       │       └── ...
-│       │
-│       └── scores/
-│           ├── nugget_scores.json
-│           ├── support_scores.json
-│           └── final_results.csv
-│
-├── src/
-│   ├── utils.py
-│   ├── 01_data_preparation.py
-│   ├── 02_nugget_creation.py
-│   ├── 03_nugget_doc_alignment.py
-│   ├── 04_context_builder.py
-│   ├── 05_generate_answers.py
-│   ├── 06_evaluate_nuggets.py
-│   ├── 07_evaluate_support.py
-│   └── 08_analyze_results.py
-│
-├── notebooks/
-│   └── litm_llama3_k20.ipynb
-│
-├── prompts/
-│   ├── generation_prompt.txt
-│   ├── nugget_creation_prompt.txt
-│   ├── nugget_assignment_prompt.txt
-│   └── support_evaluation_prompt.txt
-│
-└── results/
-    ├── tables/
-    └── figures/
+├── PIPELINE.md                            ← this file
+└── *.pdf                                  ← reference papers
 ```
 
 ---
@@ -983,15 +966,21 @@ OUTPUT FORMAT (one line per query)
 
 ---
 
-### STEP 6 — Nugget Evaluation (Comprehensiveness)
-**File:** `src/06_evaluate_nuggets.py`  
-**Runs:** locally, ~30 minutes (batched Gemini API calls)  
-**Input:** generated answers + `nuggets.json` + `nugget_doc_alignment.json`  
-**Output:** `data/outputs/scores/nugget_scores.json`
+### STEP 6 — Recall Evaluation (Comprehensiveness)
+**File:** `src/06_evaluate_nuggets.py` → **Actual implementation:** `non_factoid/scripts/evaluate_k60_async.py`
+**Evaluator:** API-based LLM-as-a-judge using **Gemma 4 31B Instruct** (`gemma-4-31b-it`) via Google AI Studio (free tier)
+> Note: Nugget *extraction* (Step 2) used `gemini-3.1-flash-lite`. This step (recall evaluation) uses **Gemma 4 31B** to judge whether each nugget is covered by the generated answer.
+**Runs:** async, ~10–15 min per condition (12 concurrent API calls per key)
+**Fallback:** LLaMA 3.3 70B via Groq API for safety-blocked queries (only nugget + answer sent, no context)
+**Input:** generated answers + `nuggets.json`
+**Output:** `non_factoid/data/processed/evaluations/k60_{1..10}_eval.json`
 
 ```python
 """
-Score nugget coverage for every generated answer using Gemini Flash.
+Evaluate Vital Recall % and Okay Recall % for every generated answer.
+For each query: pass the model's answer + its nugget list to Gemma 4 31B.
+Gemma judges whether each nugget is covered in the answer (true/false).
+Groq LLaMA 3.3 70B used as fallback when Google safety filters block Gemma.
 
 ────────────────────────────────────────────────────────────
 BATCHING STRATEGY
